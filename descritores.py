@@ -138,7 +138,7 @@ class bendenergy:
   k = curvatura(fn,scale[::-1])
   # p = perimetro do contorno nao suavisado
   p = k.contours[-1].perimeter() 
-  self.phi  = np.array([(p**2)*np.mean(k(i)**2) for i in np.arange(scale.size)])
+  self.phi  = np.array([(p**2)*np.mean(k(i)**2) for i in np.arange(1,scale.size)])
 
  def __call__(self): return self.phi
  
