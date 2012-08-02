@@ -20,7 +20,7 @@ class contour_base:
   if type(fn) is str:
    im = cv.LoadImage(fn,cv.CV_LOAD_IMAGE_GRAYSCALE)
    s = cv.FindContours(im,cv.CreateMemStorage(),cv.CV_RETR_LIST,cv.CV_CHAIN_APPROX_NONE) 
-   self.c = np.array([complex(i[0],i[1]) for i in s])
+   self.c = np.array([complex(i[1],i[0]) for i in s])
   elif (type(fn) is np.ndarray):
     self.c = fn
 
@@ -109,7 +109,7 @@ class curvatura:
      curv = - curv.imag
      curv = curv/(np.abs(c.first_deriv())**3)
      # Array bidimensional curvs = Curvature Function k(sigma,t) 
-     self.curvs[i] = curv   
+     self.curvs[i] = np.copy(curv)   
  
   # Contructor 
   def __init__(self,fn = None,sigma_range = np.linspace(2,30,20)):
@@ -138,7 +138,7 @@ class bendenergy:
   k = curvatura(fn,scale[::-1])
   # p = perimetro do contorno nao suavisado
   p = k.contours[-1].perimeter() 
-  self.phi  = np.array([(p**2)*np.mean(k(i)**2) for i in np.arange(1,scale.size)])
+  self.phi  = np.array([(p**2)*np.mean(k(i)**2) for i in np.arange(0,scale.size)])
 
  def __call__(self): return self.phi
  
