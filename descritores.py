@@ -2,22 +2,10 @@
 # descritores : m�dulo que implementa o c�lculo de assinaturas e descritores de imagens
 
 import numpy as np
-<<<<<<< .merge_file_INExBk
 import cv,cv2
 from scipy.interpolate import interp1d 
 from scipy.spatial.distance import pdist,squareform
 from math import sqrt,acos
-=======
-import cv2
-from scipy.interpolate import interp1d
-from scipy.spatial.distance import pdist,squareform
-from math import sqrt,acos
-#from oct2py import Oct2Py
-import atexit
-
-#oc = Oct2Py('/usr/bin/octave-cli')
-#atexit.register(oc.exit)
->>>>>>> .merge_file_dQFwsl
 
 class contour_base:
  '''Represents an binary image contour as a complex discrete signal.
@@ -27,36 +15,20 @@ class contour_base:
 
  '''
 
- def __init__(self,fn,nc = 256,method = 'cv'):
+ def __init__(self,fn):
   self.__i = 0
-  if method == 'octave':
-   pass
-   #if type(fn) is str:
- #   im = oc.imread(fn)
- #   s = oc.extract_longest_cont(im,nc)
- #   self.c = np.array([complex(i[0],i[1]) for i in s])
-#   elif type(fn) is ndarray:
-#    self.c = fn
-  else:
-   if type(fn) is str:
+  if type(fn) is str:
     im = cv2.imread(fn,cv2.IMREAD_GRAYSCALE )
     image, s, hierarchy = cv2.findContours(im,cv2.RETR_LIST,cv2.CHAIN_APPROX_NONE)
     self.c = np.array([complex(i[0][1],i[0][0]) for i in s[0]])
-   elif (type(fn) is np.ndarray):
+ elif (type(fn) is np.ndarray):
     self.c = fn
-<<<<<<< .merge_file_INExBk
-  elif (type(fn) is cv.iplimage):
-    s = cv.FindContours(fn,cv.CreateMemStorage(),cv.CV_RETR_LIST,cv.CV_CHAIN_APPROX_NONE) 
-    self.c = np.array([complex(i[1],i[0]) for i in s])
-=======
-   elif (type(fn) is cv2.iplimage):
-    image, s, hierarchy = cv2.findContours(fn,cv2.RETR_LIST,cv2.CHAIN_APPROX_NONE)
-    #s = cv2.FindContours(fn,cv2.CreateMemStorage(),cv2.CV_RETR_LIST,cv2.CV_CHAIN_APPROX_NONE)
+ elif (type(fn) is cv2.iplimage):
+    image, s, hierarchy = cv2.findContours(im,cv2.RETR_LIST,cv2.CHAIN_APPROX_NONE)   
     self.c = np.array([complex(i[0][1],i[0][0]) for i in s[0]])
->>>>>>> .merge_file_dQFwsl
+
   N = self.c.size
   self.freq = np.fft.fftfreq(N,1./float(N))
-
   self.ftc = np.fft.fft(self.c)
 
   if isinstance(self,contour_base):
@@ -100,8 +72,8 @@ class contour(contour_base):
   def __G(self,s):
     return (1/(s*(2*np.pi)**0.5))*np.exp(-self.freq**2/(2*s**2))
 
-  def __init__(self,fn,sigma=None,nc = 256,method = 'cv'):
-   contour_base.__init__(self,fn,nc = nc,method = method)
+  def __init__(self,fn,sigma=None):
+   contour_base.__init__(self,fn)
    if sigma is not None:
     E = np.sum(self.ftc * self.ftc.conjugate())
     self.ftc = self.ftc * self.__G(sigma)
@@ -125,11 +97,11 @@ class contour(contour_base):
 class curvatura:
   '''For a given binary image calculates and yields a family of curvature signals represented in a two dimensional ndarray structure; each row corresponds to the curvature signal derived from the smoothed contour for a certain smooth level.'''
 
-  def __Calcula_Curvograma(self,fn,nc = 256,method = 'cv'):
+  def __Calcula_Curvograma(self,fn):
    if type(fn) is contour:
     z = fn
    else:
-    z = contour(fn,nc = nc,method = method)
+    z = contour(fn)
    caux = [contour(z(),s) for s in self.sigmas]
    caux.append(z)
    self.contours = np.array(caux)
@@ -141,22 +113,14 @@ class curvatura:
      curv = c.first_deriv() * np.conjugate(c.second_deriv())
      curv = - curv.imag
      curv = curv/(np.abs(c.first_deriv())**3)
-<<<<<<< .merge_file_INExBk
-     # Array bidimensional curvs = Curvature Function k(sigma,t) 
-     self.curvs[i] = np.copy(np.tanh(curv))   
- 
-  # Contructor 
-  def __init__(self,fn = None,sigma_range = np.linspace(2,30,20)):
-=======
      # Array bidimensional curvs = Curvature Function k(sigma,t)
      self.curvs[i] = curv
 
   # Contructor
-  def __init__(self,fn = None,sigma_range = np.linspace(2,30,20),nc = 256,method = 'cv'):
->>>>>>> .merge_file_dQFwsl
+  def __init__(self,fn = None,sigma_range = np.linspace(2,30,20)):
    # Extrai contorno da imagem
    self.sigmas = sigma_range
-   self.__Calcula_Curvograma(fn,nc = nc,method = method)
+   self.__Calcula_Curvograma(fn)
 
  # Function to compute curvature
  # It is called into class constructor
@@ -174,7 +138,7 @@ class curvatura:
 class bendenergy:
  ''' For a given binary image, computes the multiscale contour curvature bend energy descriptor'''
 
- def __init__(self,fn,scale,nc = 256,method = 'cv'):
+ def __init__(self,fn,scale):
   self.__i = 0
   k = curvatura(fn,scale[::-1],nc = nc,method = method)
   # p = perimetro do contorno nao suavisado
@@ -194,7 +158,6 @@ class bendenergy:
     self.__i += 1
     return self.phi[self.__i-1]
 
-<<<<<<< .merge_file_INExBk
 # Area integral invariant signature
 def aii(name,r,white_bg = False):
  im = cv2.imread(name,0)
@@ -219,17 +182,6 @@ def aii(name,r,white_bg = False):
   l.append(area)
 
  return np.array(l)
-
-#class areaintegralinvariant:
-
-# def __init__(self,fn,raio,sigma,n):
-#  self.r = raio
-#  t = np.linspace(0,1,n)
-#  k = curvatura(fn,np.linspace(sigma,sigma,1))
-#  self.ir = np.ndarray((t.size),dtype="double")
-#  self.ir = 2*self.r**2*np.arccos(self.r*k(0,t)/2)
- 
-# def __call__(self): return (self.ir)
 
 # Distance integral invariant
 def dii(fn,raio):
@@ -327,5 +279,3 @@ class TAS:
   for a in t[1:]:
    acum = acum + a
   self.sig = np.array(acum)/float(Ts)
-=======
->>>>>>> .merge_file_dQFwsl
