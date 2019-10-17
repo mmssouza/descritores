@@ -2,7 +2,7 @@
 # descritores : m�dulo que implementa o c�lculo de assinaturas e descritores de imagens
 
 import numpy as np
-import cv,cv2
+import cv2
 from scipy.interpolate import interp1d 
 from scipy.spatial.distance import pdist,squareform
 from math import sqrt,acos
@@ -21,12 +21,9 @@ class contour_base:
     im = cv2.imread(fn,cv2.IMREAD_GRAYSCALE )
     image, s, hierarchy = cv2.findContours(im,cv2.RETR_LIST,cv2.CHAIN_APPROX_NONE)
     self.c = np.array([complex(i[0][1],i[0][0]) for i in s[0]])
- elif (type(fn) is np.ndarray):
+  elif (type(fn) is np.ndarray):
     self.c = fn
- elif (type(fn) is cv2.iplimage):
-    image, s, hierarchy = cv2.findContours(im,cv2.RETR_LIST,cv2.CHAIN_APPROX_NONE)   
-    self.c = np.array([complex(i[0][1],i[0][0]) for i in s[0]])
-
+ 
   N = self.c.size
   self.freq = np.fft.fftfreq(N,1./float(N))
   self.ftc = np.fft.fft(self.c)
@@ -98,11 +95,11 @@ class curvatura:
   '''For a given binary image calculates and yields a family of curvature signals represented in a two dimensional ndarray structure; each row corresponds to the curvature signal derived from the smoothed contour for a certain smooth level.'''
 
   def __Calcula_Curvograma(self,fn):
-   if type(fn) is contour:
+   if type(fn) in [contour,contour_base]:
     z = fn
    else:
     z = contour(fn)
-   caux = [contour(z(),s) for s in self.sigmas]
+   caux = [contour(z.c,s) for s in self.sigmas]
    caux.append(z)
    self.contours = np.array(caux)
    self.t = np.linspace(0,1,z().size)
@@ -138,9 +135,9 @@ class curvatura:
 class bendenergy:
  ''' For a given binary image, computes the multiscale contour curvature bend energy descriptor'''
 
- def __init__(self,fn,scale):
+ def __init__(self,fn,scale = np.linspace(2,30,20)):
   self.__i = 0
-  k = curvatura(fn,scale[::-1],nc = nc,method = method)
+  k = curvatura(fn,scale[::-1])
   # p = perimetro do contorno nao suavisado
   p = k.contours[-1].perimeter()
   self.phi  = np.array([(p**2)*np.mean(k(i)**2) for i in np.arange(0,scale.size)])
@@ -269,7 +266,6 @@ class TAS:
  def __init__(self,fn):
   cont = contour_base(fn).c
   self.N = cont.shape[0]
-  print fn,self.N
   Ts = np.floor((self.N-1)/2)
   t = []
   for ts in np.arange(1,Ts):
