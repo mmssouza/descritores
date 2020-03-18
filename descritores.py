@@ -1,8 +1,9 @@
 # -*- coding: iso-8859-1 -*-
-# descritores : m�dulo que implementa o c�lculo de assinaturas e descritores de imagens
+# descritores : mï¿œdulo que implementa o cï¿œlculo de assinaturas e descritores de imagens
 
 import numpy as np
-import cv2
+#import cv2
+from skimage import measure,io,img_as_float
 from scipy.interpolate import interp1d 
 from scipy.spatial.distance import pdist,squareform
 from math import sqrt,acos
@@ -18,9 +19,11 @@ class contour_base:
  def __init__(self,fn):
   self.__i = 0
   if type(fn) is str:
-    im = cv2.imread(fn,cv2.IMREAD_GRAYSCALE )
-    image, s, hierarchy = cv2.findContours(im,cv2.RETR_LIST,cv2.CHAIN_APPROX_NONE)
-    self.c = np.array([complex(i[0][1],i[0][0]) for i in s[0]])
+    #im = cv2.imread(fn,cv2.IMREAD_GRAYSCALE )
+    #image, s, hierarchy = cv2.findContours(im,cv2.RETR_LIST,cv2.CHAIN_APPROX_NONE)
+    im = img_as_float(io.imread(fn, as_gray = True))
+    s = measure.find_contours(im,.5)[0]
+    self.c = np.array([complex(i[1],i[0]) for i in s])
   elif (type(fn) is np.ndarray):
     self.c = fn
  
@@ -82,13 +85,13 @@ class contour(contour_base):
     self.cdd = self.cdd * k
 
 
-# classe curvatura : calcula a curvatura de um contorno para v�rios n�veis de suaviza��o
-# Par�metros do Construtor:   def __init__(self,fn = None,sigma_range = np.linspace(2,30,10))
-#  fn : Pode ser o nome de um arquivo de imagem (string) que contenha uma forma bin�ria ou um vetor (ndarray) de valores das
-# coordenadas do contorno de uma forma (representa��o complexa x+j.y).
-# No primeiro caso os contornos s�o extra�dos atrav�s da fun��o cv.FindContours() da biblioteca Opencv
-#  sigma_range :  vetor (ndarray) que cont�m os valores que ser�o utilizados como desvio padr�o para o FPB Gaussiana.
-# que filtra os contorno antes do c�lculo da curvatura.
+# classe curvatura : calcula a curvatura de um contorno para vï¿œrios nï¿œveis de suavizaï¿œï¿œo
+# Parï¿œmetros do Construtor:   def __init__(self,fn = None,sigma_range = np.linspace(2,30,10))
+#  fn : Pode ser o nome de um arquivo de imagem (string) que contenha uma forma binï¿œria ou um vetor (ndarray) de valores das
+# coordenadas do contorno de uma forma (representaï¿œï¿œo complexa x+j.y).
+# No primeiro caso os contornos sï¿œo extraï¿œdos atravï¿œs da funï¿œï¿œo cv.FindContours() da biblioteca Opencv
+#  sigma_range :  vetor (ndarray) que contï¿œm os valores que serï¿œo utilizados como desvio padrï¿œo para o FPB Gaussiana.
+# que filtra os contorno antes do cï¿œlculo da curvatura.
  #  when zero no filtering is applied to contour
 
 class curvatura:
@@ -106,7 +109,7 @@ class curvatura:
    self.curvs = np.ndarray((self.sigmas.size+1,self.t.size),dtype = "float")
 
    for c,i in zip(self.contours,np.arange(self.contours.size)):
-    # Calcula curvatura para varias escalas de suaviza��o do contorno da forma
+    # Calcula curvatura para varias escalas de suavizaï¿œï¿œo do contorno da forma
      curv = c.first_deriv() * np.conjugate(c.second_deriv())
      curv = - curv.imag
      curv = curv/(np.abs(c.first_deriv())**3)
@@ -191,7 +194,7 @@ def dii(fn,raio):
 # Centroid distance signature
 def cd(fn):
   img_c = contour_base(fn)
-  # Calcula dist�ncia ao centr�ide
+  # Calcula distância ao centróide
   dc = np.abs((img_c()-img_c().mean()))
   # m = maior distancia do contorno ao centroide
   m = np.max(dc)
