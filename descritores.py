@@ -269,7 +269,7 @@ class TAS:
  def __init__(self,fn):
   cont = contour_base(fn).c
   self.N = cont.shape[0]
-  Ts = np.floor((self.N-1)/2)
+  Ts = int((self.N-1)/2)
   t = []
   for ts in np.arange(1,Ts):
    t.append(self.TAN(cont,ts))
